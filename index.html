@@ -436,16 +436,15 @@
         display: inline-block;
       }
       .text-box {
-        min-width: 100px;
-        min-height: 45px;
+        min-width: 140px;
+        min-height: 85px;
         resize: both;
-        background: rgba(192, 194, 196, 0.9);
+        background: rgba(154, 255, 143, 0.9);
         color: black;
         border: 0.2px solid #7d514f;
         border-radius: 6px;
         padding: 6px 18px 6px 6px;
-        font-size: 12px;
-        font-weight: bold;
+        font-size: 14px;
         font-family: "Roboto", sans-serif;
         outline: none;
         z-index: 1000 !important;
@@ -840,6 +839,7 @@
         <button id="clearPenBtn" class="tool-btn">Clear Pen</button>
         <button id="textToolBtn" class="tool-btn">Text Box</button>
         <button id="clearTextBtn" class="tool-btn">Clear Boxes</button>
+        <button id="btnEraser" class="tool-btn">Ereaser</button>
       </div>
 
       <div id="sectorPanel" class="map-btn-panel">
@@ -1679,6 +1679,79 @@
         ],
       };
 
+      const extraColorGroups = {
+        OUT: [
+          "ORMID",
+          "ALPOB",
+          "TUMAK",
+          "GABKO",
+          "GOMTA",
+          "TONVO",
+          "TARDI",
+          "LABRI",
+          "RETAS",
+          "MEMTU",
+          "KUMUN",
+          "TOVOX",
+        ],
+
+        IN: [
+          "ORSAR",
+          "SIR",
+          "PATAT",
+          "MENSA",
+          "PASOV",
+          "SOLUD",
+          "TAPRA",
+          "MUSAP",
+          "ITRAX",
+          "SODEX",
+          "BUNDU",
+          "KUPRO",
+          "LUDID",
+          "ASTOG",
+          "OVONA",
+          "NALPO",
+          "OBNET",
+        ],
+
+        BI: ["LALDO", "RIBOT", "TANSU", "PEKEM", "MUXIT", "RIBOT", "TOSNA"],
+
+        ST: [
+          "UKILI",
+          "VUTEB",
+          "PUVAL",
+          "IMPED",
+          "EMERU",
+          "ROVOS",
+          "NOBTO",
+          "ATUDO",
+          "LORID",
+          "GONVI",
+          "DATOB",
+          "GIDOB",
+          "ELOVU",
+          "GERUL",
+          "UMAMI",
+          "NOLSU",
+          "GIDIS",
+          "KANIP",
+          "KUSEN",
+        ],
+      };
+
+      Object.entries(extraColorGroups).forEach(([dir, names]) => {
+        names.forEach((name) => {
+          extraColorGroups[name] = dir;
+        });
+      });
+
+      const dirColors = {
+        IN: "#ffb9dcc4",
+        OUT: "#aaf1facc",
+        BI: "#e0d0a0",
+        ST: "#ccfdbdc7",
+      };
       const extraPoints = {
         ADV: ["242508.3N", "0544023.7E"],
         ALGUX: ["242247N", "0541209E"],
@@ -5058,30 +5131,16 @@
         }
       }
 
-      // --- UI ONLY --- (DOM TOUCHING) //here
-      /* //if checkbox is selected ---map layers -- text color green
-            function updateMapLayerButtonState() {
-              const btn = document.getElementById("toggleMapLayerBtn");
-              if (!btn) return;
-
-              const anyChecked = [
-                "mlBorders",
-                "mlRunways",
-                "mlFixes",
-                "mlAwyLabels",
-                "mlAirspace",
-              ].some((id) => document.getElementById(id)?.checked);
-
-              btn.style.color = anyChecked ? "#b4f59d" : "";
-            }
-      */
       function syncToolUI() {
         const active = state.ui.activeTool;
+        state.eraserMode = state.ui.activeTool === "eraser";
+        state.eraser.active = state.eraserMode;
 
         setButtonActive(rblBtn, active === "rbl");
         setButtonActive(measureBtn, active === "measure");
         setButtonActive(penBtn, active === "pen");
         setButtonActive(textBtn, active === "text");
+        setButtonActive(eraserBtn, active === "eraser");
 
         setMapCursor(state.ui.cursor);
       }
@@ -5918,22 +5977,6 @@
         });
       });
 
-      /*
-            const airwayBtn = document.getElementById("airwayLabelBtn");
-
-           airwayBtn.addEventListener("click", () => {
-              airwayLabelsVisible = !airwayLabelsVisible;
-
-              if (airwayLabelsVisible) {
-                airwayLabelLayer.addTo(map);
-                airwayBtn.style.color = "#B4F59D";
-              } else {
-                map.removeLayer(airwayLabelLayer);
-                airwayBtn.style.borderColor = "";
-                airwayBtn.style.color = "";
-              }
-            });
-      */
       function setAwyLabelsVisible(visible) {
         airwayLabelsVisible = !!visible;
 
@@ -5949,11 +5992,7 @@
           }
         }
       }
-      /*
-            function toggleAwyLabels() {
-              setAwyLabelsVisible(!airwayLabelsVisible);
-            }
-      */
+
       //display coordinates of corss hair on the center of the map-----------
 
       const centerCoords = document.getElementById("centerCoords");
@@ -6679,7 +6718,7 @@
             color: "red",
             weight: 1.5,
             opacity: 0.9,
-            interactive: false,
+            interactive: true,
           }).addTo(map);
           p.all.push(p.currentLine);
         },
@@ -6788,8 +6827,43 @@
       });
 
       // ------------------------ UNIVERSAL ERASER (STATE-BASED) ------------------------
+      function isUIControlEvent(ev) {
+        const t = ev?.target;
+        if (!t) return false;
+
+        // ignore tool buttons and common UI controls
+        return !!t.closest(".tool-btn, button, input, select, textarea, label");
+      }
+
+      const eraserBtn = document.getElementById("btnEraser"); // match your HTML id
+
+      function eraseAtLatLng(latlng) {
+        if (!state.eraser.active) return;
+        if (isTypingInTextBox()) return;
+
+        const now = performance.now();
+        if (now - state.eraser.lastEraseAt < ERASE_INTERVAL_MS) return;
+        state.eraser.lastEraseAt = now;
+
+        const cursorPoint = map.latLngToContainerPoint(latlng);
+
+        state.pen.all = erasePolylinesNearCursor(state.pen.all, cursorPoint);
+        state.measure.all = eraseLineTooltipObjectsNearCursor(
+          state.measure.all,
+          cursorPoint,
+        );
+        state.rbl.objects = eraseLineTooltipObjectsNearCursor(
+          state.rbl.objects,
+          cursorPoint,
+        );
+        state.text.markers = eraseMarkersNearCursor(
+          state.text.markers,
+          cursorPoint,
+        );
+      }
 
       state.eraser ??= { active: false, lastEraseAt: 0 };
+      state.eraserMode = false;
 
       const ERASE_INTERVAL_MS = 35;
       const ERASE_RADIUS_PX = 10;
@@ -6806,61 +6880,82 @@
 
       // Prevent browser context menu while erasing
       map.getContainer().addEventListener("contextmenu", (e) => {
+        if (isUIControlEvent(e)) return;
         if (state.eraser.active) e.preventDefault();
       });
 
       // Right mouse DOWN = start eraser
       map.getContainer().addEventListener("mousedown", (e) => {
-        if (e.button !== 2) return; // right only
+        if (isUIControlEvent(e)) return; // ✅ IMPORTANT (prevents eating toolbar clicks)
         if (isTypingInTextBox()) return;
 
-        state.eraser.active = true;
+        // Right button always starts erasing temporarily
+        if (e.button === 2) {
+          state.eraser.active = true;
+          e.preventDefault();
+          e.stopPropagation();
+          return;
+        }
 
-        e.preventDefault();
-        e.stopPropagation();
+        // Left button starts erasing ONLY if eraser tool is active
+        if (e.button === 0 && state.ui.activeTool === "eraser") {
+          state.eraser.active = true;
+          e.preventDefault();
+          e.stopPropagation();
+        }
       });
 
       // Right mouse UP = stop eraser
       window.addEventListener("mouseup", (e) => {
-        if (e.button !== 2) return;
+        // Right mouse release ends the "temporary" erase, unless button mode is ON
+        if (e.button === 2) {
+          state.eraser.active = state.ui.activeTool === "eraser";
+          state.eraserMode = state.ui.activeTool === "eraser"; // stay on if mode is on
+          restoreCursorAfterEraser();
+          e.preventDefault();
+          return;
+        }
 
-        state.eraser.active = false;
-        restoreCursorAfterEraser();
-
-        e.preventDefault();
+        // Left mouse release ends erase only if it was started via left and mode is OFF
+        if (e.button === 0) {
+          state.eraser.active = state.ui.activeTool === "eraser";
+          state.eraserMode = state.ui.activeTool === "eraser";
+          restoreCursorAfterEraser();
+        }
       });
+
+      map.getContainer().addEventListener(
+        "touchstart",
+        (e) => {
+          if (isUIControlEvent(e)) return; // ✅ IMPORTANT
+          if (state.ui.activeTool !== "eraser") return;
+          if (isTypingInTextBox()) return;
+
+          state.eraser.active = true;
+
+          e.preventDefault();
+          e.stopPropagation();
+        },
+        { passive: false, capture: true },
+      );
+
+      map.getContainer().addEventListener(
+        "touchend",
+        (e) => {
+          state.eraserMode = state.ui.activeTool === "eraser";
+          state.eraser.active = state.eraserMode;
+
+          restoreCursorAfterEraser();
+
+          e.preventDefault();
+          e.stopPropagation();
+        },
+        { passive: false, capture: true },
+      );
 
       // Erase while moving
       map.on("mousemove", (e) => {
-        if (!state.eraser.active) return;
-        if (isTypingInTextBox()) return;
-
-        const now = performance.now();
-        if (now - state.eraser.lastEraseAt < ERASE_INTERVAL_MS) return;
-        state.eraser.lastEraseAt = now;
-
-        const cursorPoint = map.latLngToContainerPoint(e.latlng);
-
-        // --- 1) PEN: state.pen.all = [polyline]
-        state.pen.all = erasePolylinesNearCursor(state.pen.all, cursorPoint);
-
-        // --- 2) MEASURE: state.measure.all = [{ line, tooltip }]
-        state.measure.all = eraseLineTooltipObjectsNearCursor(
-          state.measure.all,
-          cursorPoint,
-        );
-
-        // --- 3) RBL: state.rbl.objects = [{ line, tooltip }]
-        state.rbl.objects = eraseLineTooltipObjectsNearCursor(
-          state.rbl.objects,
-          cursorPoint,
-        );
-
-        // --- 4) TEXT: state.text.markers = [marker]
-        state.text.markers = eraseMarkersNearCursor(
-          state.text.markers,
-          cursorPoint,
-        );
+        eraseAtLatLng(e.latlng);
       });
 
       // -------------------- helpers --------------------
@@ -6915,6 +7010,24 @@
           return true;
         });
       }
+
+      eraserBtn.addEventListener("click", () => {
+        const turningOn = state.ui.activeTool !== "eraser";
+
+        if (turningOn) {
+          // IMPORTANT: eraser is state-based, so clear ToolManager tool
+          // to avoid the "2-click" toggle bug on the next tool.
+          uiSetActiveTool(null);
+
+          state.ui.activeTool = "eraser";
+          state.ui.cursor = "crosshair";
+        } else {
+          state.ui.activeTool = null;
+          state.ui.cursor = cursorForTool(null);
+        }
+
+        syncToolUI();
+      });
 
       // -----------Function to render sector info table from sectorData---------------------
 
@@ -7053,6 +7166,16 @@
             .setLatLng([lat, lon])
             .setContent(name)
             .addTo(map);
+
+          const dir = extraColorGroups[name];
+          const color = dir ? dirColors[dir] : null;
+
+          if (color) {
+            requestAnimationFrame(() => {
+              const el = label.getElement();
+              if (el) el.style.color = color;
+            });
+          }
 
           extraLabelMarkers.push(label);
         }
@@ -8086,19 +8209,7 @@
           });
 
         //---------togglewaypoint--------
-        /*
-              document
-                .getElementById("toggleWaypointsBtn")
-                ?.addEventListener("click", function () {
-                  coordsVisible = !coordsVisible;
-                  extraLabelMarkers.forEach((label) => {
-                    const el = label.getElement();
-                    if (el) el.style.opacity = coordsVisible ? "1" : "0";
-                  });
-                  this.textContent = "Fixes";
-                  this.style.color = coordsVisible ? "" : "#c2c2c0";
-                });
-      */
+
         function setFixesVisible(visible) {
           coordsVisible = !!visible;
 
@@ -8107,9 +8218,6 @@
             if (el) el.style.opacity = coordsVisible ? "1" : "0";
           });
 
-          /*const btn = document.getElementById("toggleWaypointsBtn");
-                if (btn) btn.style.color = coordsVisible ? "" : "#c2c2c0";
-      */
         }
         document
           .getElementById("toggleRouteTipsBtn")
