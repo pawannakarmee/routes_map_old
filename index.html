@@ -6435,6 +6435,8 @@
           map.doubleClickZoom.disable();
           map.scrollWheelZoom.disable();
           mapContainer.style.touchAction = "none";
+          map.touchZoom && map.touchZoom.disable();
+          map.boxZoom && map.boxZoom.disable();
 
           // ---- helpers ----
           const touchLatLng = (ev) => {
@@ -6491,6 +6493,7 @@
 
             ev.preventDefault();
             ev.stopPropagation();
+            map.stop();
 
             map.dragging.disable();
             startDrawAt(touchLatLng(ev));
@@ -6577,6 +6580,8 @@
           map.dragging.enable();
           map.doubleClickZoom.enable();
           map.scrollWheelZoom.enable();
+          map.touchZoom && map.touchZoom.enable();
+          map.boxZoom && map.boxZoom.enable();
         },
 
         // Still used for PC drawing path (ToolManager dispatch)
@@ -6589,6 +6594,8 @@
           // Mouse only here (touch is handled via container touch listeners)
           const isLeftMouse = oe?.button === 0 || oe?.buttons === 1;
           if (!isLeftMouse) return;
+
+          map.stop();
 
           map.dragging.disable();
           if (oe?.cancelable) oe.preventDefault();
