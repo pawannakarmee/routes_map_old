@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!doctype html>
 <html>
   <head>
     <meta charset="UTF-8" />
@@ -10,7 +10,7 @@
     <link
       rel="stylesheet"
       href="https://unpkg.com/leaflet/dist/leaflet.css"
-      onerror="this.remove();"
+      onerror="this.remove()"
     />
 
     <!-- Google font (optional) -->
@@ -36,7 +36,7 @@
             event.preventDefault(); // allow pinch zoom
           }
         },
-        { passive: false }
+        { passive: false },
       );
 
       let lastTouchEnd = 0;
@@ -49,7 +49,7 @@
           }
           lastTouchEnd = now;
         },
-        { passive: false }
+        { passive: false },
       );
     </script>
 
@@ -129,7 +129,7 @@
       .map-btn {
         padding: 6px 10px;
         font-size: 11.2px;
-        color: #ecece6;
+        color: #e6e6e3;
         cursor: pointer;
         height: 28px;
         width: auto;
@@ -439,13 +439,13 @@
         min-width: 100px;
         min-height: 45px;
         resize: both;
-        background: rgba(193,240, 149, 1);
+        background: rgba(192, 194, 196, 0.9);
         color: black;
         border: 0.2px solid #7d514f;
         border-radius: 6px;
         padding: 6px 18px 6px 6px;
-        font-size: 14px;
-        font-weight:200;
+        font-size: 12px;
+        font-weight: bold;
         font-family: "Roboto", sans-serif;
         outline: none;
         z-index: 1000 !important;
@@ -754,7 +754,14 @@
       /* Pen tool cursor – FORCE it on all Leaflet panes */
       .leaflet-container.pen-cursor,
       .leaflet-container.pen-cursor * {
-        cursor: url("./pen-cursor.png") 6 26, crosshair !important;
+        cursor:
+          url("./pen-cursor.png") 6 26,
+          crosshair !important;
+      }
+
+      .leaflet-control-attribution {
+        font-size: 12px;
+        font-weight: 400;
       }
 
       /*add yellow spot at the end of the drawn route line*/
@@ -976,7 +983,7 @@
     <script>
       function convertDMSToDecimal(dmsStr) {
         const match = dmsStr.match(
-          /^(\d{2,3})(\d{2})(\d{2}(?:\.\d+)?)([NSWE])$/
+          /^(\d{2,3})(\d{2})(\d{2}(?:\.\d+)?)([NSWE])$/,
         );
         if (!match) return null;
         const [, deg, min, sec, dir] = match;
@@ -994,11 +1001,11 @@
         {
           attribution:
             '© <a href="https://www.esri.com/">Esri</a>, ' +
-            '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, ' +
+            '© Map data from <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, ' +
             "and the GIS User Community",
           maxZoom: 19,
           opacity: 0.75,
-        }
+        },
       );
 
       //----------------main map border coordinates--------------------------
@@ -1065,7 +1072,7 @@
       let activeTextMarker = null; // current selected marker
       let pendingClearMarker = null; // captured on mousedown (pre-blur)
       const PEN_CURSOR = "pen-cursor.png";
-
+      let latlngs = [];
       //--------------convert coordinates decimal numbers
 
       latlngs = rawCoords
@@ -1077,7 +1084,7 @@
 
       //10nm final extended lines ------------
 
-      runwayCoords = {
+      const runwayCoords = {
         OMAA_31L: [
           ["242518N", "0544001E"],
           ["241909N", "0544841E"],
@@ -1508,40 +1515,93 @@
       const highSectors = ["S", "B", "L", "N", "M", "C"];
       const lowSectors = ["G", "A", "W", "D", "H", "E", "Y", "R"];
 
-      const rawSectorCoords = {
-        S: southCoords,
-        L: limaCoords,
-        B: bravoCoords,
-        G: golfCoords,
-        A: alphaCoords,
-        N: northCoords,
-        M: mikeCoords,
-        W: westCoords,
-        C: centralCoords,
-        D: deltaCoords,
-        H: hotelCoords,
-        E: eastCoords,
-        Y: yankeeCoords,
-        R: romeoCoords,
+      const sectorMeta = {
+        S: {
+          coords: southCoords,
+          color: "dodgerblue",
+          label: ["245110.45N", "0525951.89E"],
+        },
+        L: {
+          coords: limaCoords,
+          color: "plum",
+          label: ["235606.37N", "0534706.36E"],
+        },
+        B: {
+          coords: bravoCoords,
+          color: "gold",
+          label: ["242709.99N", "0552646.12E"],
+        },
+        G: {
+          coords: golfCoords,
+          color: "yellow",
+          label: ["245024.97N", "0533029.73E"],
+        },
+        A: {
+          coords: alphaCoords,
+          color: "#FF7F50",
+          label: ["241634.49N", "0545751.99E"],
+        },
+        N: {
+          coords: northCoords,
+          color: "#6F83FC",
+          label: ["260037.33N", "0540542.58E"],
+        },
+        M: {
+          coords: mikeCoords,
+          color: "#C8D66B",
+          label: ["251447.71N", "0553434.53E"],
+        },
+        W: {
+          coords: westCoords,
+          color: "orange",
+          label: ["254634.55N", "0542249.11E"],
+        },
+        C: {
+          coords: centralCoords,
+          color: "crimson",
+          label: ["253248.09N", "0532640.51E"],
+        },
+        D: {
+          coords: deltaCoords,
+          color: "violet",
+          label: ["251250.51N", "0541340.96E"],
+        },
+        H: {
+          coords: hotelCoords,
+          color: "#CADAE0",
+          label: ["250340.15N", "0545612.33E"],
+        },
+        E: {
+          coords: eastCoords,
+          color: "cyan",
+          label: ["245325.82N", "0554642.07E"],
+        },
+        Y: {
+          coords: yankeeCoords,
+          color: "khaki",
+          label: ["245635.63N", "0561226.84E"],
+        },
+        R: {
+          coords: romeoCoords,
+          color: "#E478D7",
+          label: ["253905.58N", "0555041.26E"],
+        },
       };
 
-      const sectorColors = {
-        C: "crimson",
-        S: "dodgerblue",
-        A: "#FF7F50",
-        G: "yellow",
-        B: "gold",
-        L: "plum",
-        N: "#6F83FC",
-        M: "#C8D66B",
-        W: "orange",
-        D: "violet",
-        H: "#CADAE0",
-        E: "cyan",
-        Y: "khaki",
-        R: "#E478D7",
-      };
+      const rawSectorCoords = Object.fromEntries(
+        Object.entries(sectorMeta).map(([code, v]) => [code, v.coords]),
+      );
 
+      const sectorColors = Object.fromEntries(
+        Object.entries(sectorMeta).map(([code, v]) => [code, v.color]),
+      );
+
+      // New: preferred label positions (optional per sector)
+      const sectorLabelCoords = Object.fromEntries(
+        Object.entries(sectorMeta)
+          .filter(([_, v]) => v.label)
+          .map(([code, v]) => [code, v.label]),
+      );
       // Convert all to decimal
       for (const [key, coordList] of Object.entries(rawSectorCoords)) {
         sectorPolygons[key] = coordList.map(([latDMS, lonDMS]) => [
@@ -2152,7 +2212,7 @@
           { coord: ["251957.25N", "0533302.96E"], rotate: 31, arrow: "left" },
         ],
         P440: [
-          { coord: ["242117.41N", "0533307.99E"], rotate: 0, arrow: "left" },
+          { coord: ["242117.21N", "0533308.00E"], rotate: 0, arrow: "left" },
         ],
         P555: [
           { coord: ["241512.16N", "0531738.50E"], rotate: 0, arrow: "right" },
@@ -4233,19 +4293,19 @@
 
       const prohibitatedAreas = [
         {
-          shapeName: "OMP_48 Argoob",
+          shapeName: "P48 UNL_GND",
           shapeType: "circle",
           coords: ["243850.46N", "0550715.30E"],
           radiusNm: 5,
-          limit: "UNL - GND",
+          limit: "Argoob",
           type: "Permanent, Military activity extremely hazardous to aircraft",
         },
         {
-          shapeName: "OMP_108 Tawilah",
+          shapeName: "P108 FL220_GND",
           shapeType: "circle",
           coords: ["244041N", "0544152E"],
           radiusNm: 3,
-          limit: "FL220 - GND",
+          limit: "Tawilah",
           type: "Permanent, Controlled by Air Operations Center.",
         },
 
@@ -4261,15 +4321,15 @@
       // --- Restricted Category Library -----------------------
       const restrictedAreas = [
         {
-          shapeName: "OIR_38 Siri_Island",
+          shapeName: "OIR38 12,000Ft_AMSL-GND",
           shapeType: "circle",
           coords: ["255420N", "0543320E"],
           radiusNm: 12,
-          limit: "12,000ft AMSL - GND",
+          limit: "Siri_Island",
           type: "Permanent",
         },
         {
-          shapeName: "OMR_51 Minhad_Trng_Area",
+          shapeName: "R51 FL300_FL155",
           shapeType: "polygon",
           coords: [
             ["245630.00N", "0551155.00E"],
@@ -4287,11 +4347,11 @@
             ["244009.93N", "0550137.10E"],
             ["245630.00N", "0551155.00E"],
           ],
-          limit: "FL300 - FL155",
+          limit: "Minhad_Trng_Area",
           type: "Activity notified by UAE ACC, When active: Controlled by AL MAKTOUM RADAR,\n Contact 124.025 MHz before entering Military jet training",
         },
         {
-          shapeName: "OMR_53 Minhad_Trng_Area",
+          shapeName: "R53 FL155_GND",
           shapeType: "polygon",
           coords: [
             ["244134.55N", "0551221.09E"],
@@ -4307,11 +4367,11 @@
             ["243429.76N", "0551331.68E"],
             ["244134.55N", "0551221.09E"],
           ],
-          limit: "FL155 - GND",
+          limit: "Minhad_Trng_Area",
           type: "Activity notified by UAE ACC, When active: Controlled by DUBAI SOUTH RADAR,\n Contact 120.400 MHz before entering Military jet training",
         },
         {
-          shapeName: "OMR_67 Ras_Al_Kheimah",
+          shapeName: "R67 FL300-9,500Ft_AGL",
           shapeType: "polygon",
           coords: [
             ["253530N", "0562150E"],
@@ -4324,8 +4384,21 @@
             ["253613N", "0561945E"],
             ["253530N", "0562150E"],
           ],
-          limit: "FL300 - 9,500ft AGL",
+          limit: "Ras_Al_Kheimah",
           type: "Activity notified by UAE ACC, High level military jet training",
+        },
+        {
+          shapeName: "R90 FL185-2,000Ft_AGL",
+          shapeType: "polygon",
+          coords: [
+            ["234730N", "0552312E"],
+            ["234428N", "0553023E"],
+            ["232332N", "0552406E"],
+            ["230723N", "0551420E"],
+            ["234730N", "0552312E"],
+          ],
+          limit: "Burami South",
+          type: "Permanent, Controlled by UAE Air Force",
         },
       ];
 
@@ -4340,7 +4413,7 @@
       type: "Temporary"
       },*/
         {
-          shapeName: "OMD_22 Sea_Range_Charlie",
+          shapeName: "D22 FL300_GND",
           shapeType: "polygon",
           coords: [
             ["250330N", "0541625E"],
@@ -4349,11 +4422,11 @@
             ["245830N", "0542545E"],
             ["250330N", "0541625E"],
           ],
-          limit: "FL300 - GND	",
+          limit: "Sea_Range_Charlie",
           type: "NOTAM, Air to Air towed target gunnery and Naval gunnery practice,\n Controlled by UAE ACC ",
         },
         {
-          shapeName: "OMD_24 Bargat_Al_Hagat",
+          shapeName: "D24 FL220_GND",
           shapeType: "polygon",
           coords: [
             ["243429.76N", "0551331.68E"],
@@ -4363,7 +4436,7 @@
             ["243328.80N", "0550449.32E"],
             ["243429.76N", "0551331.68E"],
           ],
-          limit: "FL220 - GND	",
+          limit: "Bargat_Al_Hagat",
           type: "NOTAM - Controlled by AUH APP",
         },
       ];
@@ -4693,7 +4766,7 @@
           startLon,
           endLat,
           endLon,
-          clockwise = true
+          clockwise = true,
         ) {
           const radius = this.nmToMeters(radiusNm);
 
@@ -4732,14 +4805,14 @@
 
             const lat = Math.asin(
               Math.sin(lat1) * Math.cos(radius / this.R) +
-                Math.cos(lat1) * Math.sin(radius / this.R) * Math.cos(brad)
+                Math.cos(lat1) * Math.sin(radius / this.R) * Math.cos(brad),
             );
 
             const lon =
               lon1 +
               Math.atan2(
                 Math.sin(brad) * Math.sin(radius / this.R) * Math.cos(lat1),
-                Math.cos(radius / this.R) - Math.sin(lat1) * Math.sin(lat)
+                Math.cos(radius / this.R) - Math.sin(lat1) * Math.sin(lat),
               );
 
             latlngs.push([this.toDeg(lat), this.toDeg(lon)]);
@@ -4856,6 +4929,11 @@
       map.on("dblclick", (e) => dispatchToolEvent("onDoubleClick", e));
       map.on("mousedown", (e) => dispatchToolEvent("onMouseDown", e));
       map.on("mouseup", (e) => dispatchToolEvent("onMouseUp", e));
+
+      map.on("touchstart", (e) => dispatchToolEvent("onMouseDown", e));
+      map.on("touchmove", (e) => dispatchToolEvent("onMouseMove", e));
+      map.on("touchend", (e) => dispatchToolEvent("onMouseUp", e));
+      map.on("touchcancel", (e) => dispatchToolEvent("onMouseUp", e));
 
       //--------------draw main FIR boundary------------------------
 
@@ -5126,8 +5204,8 @@
       function getSelectedSectors() {
         return Array.from(
           document.querySelectorAll(
-            '#sectorOptions input[type="checkbox"]:checked'
-          )
+            '#sectorOptions input[type="checkbox"]:checked',
+          ),
         ).map((cb) => cb.value);
       }
 
@@ -5184,7 +5262,7 @@
           if (selectedSectors.length > 0) {
             const routeSectorTags = routeSectors[key] || [];
             const intersects = routeSectorTags.some((tag) =>
-              selectedSectors.includes(tag)
+              selectedSectors.includes(tag),
             );
             if (!intersects) return;
           }
@@ -5379,7 +5457,7 @@
               current[1],
               to[0],
               to[1],
-              step.clockwise
+              step.clockwise,
             );
             result.push(...arcPts);
             current = to;
@@ -5406,7 +5484,7 @@
         legLengthNm = 10,
         turn = "right",
         turnRadiusNm = 2,
-        limit = ""
+        limit = "",
       ) {
         const pt = extraPoints[pointName];
         if (!pt) {
@@ -5520,7 +5598,7 @@
               direction: "top",
               offset: [-40, -40],
               className: "holding-tooltip",
-            }
+            },
           )
           .addTo(map);
         holdingLayers.push(fixMarker);
@@ -5577,7 +5655,7 @@
       // Draw/Clear all holdings ------------------------------------------------
       function drawAllHoldings() {
         holdingLibrary.forEach((h) =>
-          drawHoldingPattern(h.point, h.heading, h.leg, h.turn, 2, h.limit)
+          drawHoldingPattern(h.point, h.heading, h.leg, h.turn, 2, h.limit),
         );
       }
 
@@ -5668,7 +5746,7 @@
                 color,
                 weight: 1,
                 fill: true,
-                fillOpacity: 0.05,
+                fillOpacity: 0.1,
               }).addTo(layerGroup);
               break;
 
@@ -5678,7 +5756,7 @@
                 return;
               }
               const latlngs = area.coords.map(([lat, lon]) =>
-                dmsToLatLng(lat, lon)
+                dmsToLatLng(lat, lon),
               );
               shape = L.polygon(latlngs, {
                 color,
@@ -5695,7 +5773,7 @@
                 !Array.isArray(area.corner2)
               ) {
                 console.error(
-                  `Invalid corners for rectangle "${area.shapeName}"`
+                  `Invalid corners for rectangle "${area.shapeName}"`,
                 );
                 return;
               }
@@ -5890,12 +5968,12 @@
           if (latlon === "lat") {
             return `${String(d).padStart(2, "0")}${String(m).padStart(
               2,
-              "0"
+              "0",
             )}${String(s).padStart(5, "0")} ${deg >= 0 ? "N" : "S"}`;
           } else {
             return `${String(d).padStart(3, "0")}${String(m).padStart(
               2,
-              "0"
+              "0",
             )}${String(s).padStart(5, "0")} ${deg >= 0 ? "E" : "W"}`;
           }
         }
@@ -6013,7 +6091,7 @@
             r.anchor.lat,
             r.anchor.lng,
             end.lat,
-            end.lng
+            end.lng,
           );
 
           const radial = Math.round(brg).toString().padStart(3, "0");
@@ -6027,7 +6105,7 @@
 
           const twoThirdPoint = L.latLng(
             (r.anchor.lat + 3 * end.lat) / 4,
-            (r.anchor.lng + 3 * end.lng) / 4
+            (r.anchor.lng + 3 * end.lng) / 4,
           );
 
           const finalTooltip = L.tooltip({
@@ -6058,13 +6136,13 @@
             r.anchor.lat,
             r.anchor.lng,
             e.latlng.lat,
-            e.latlng.lng
+            e.latlng.lng,
           );
           const distNm = Geo.haversineNm(
             r.anchor.lat,
             r.anchor.lng,
             e.latlng.lat,
-            e.latlng.lng
+            e.latlng.lng,
           );
 
           const radial = Math.round(brg).toString().padStart(3, "0");
@@ -6097,7 +6175,7 @@
 
       measureBtn.addEventListener("click", () => {
         uiSetActiveTool(
-          ToolManager.getActive() === "measure" ? null : "measure"
+          ToolManager.getActive() === "measure" ? null : "measure",
         );
       });
 
@@ -6341,7 +6419,7 @@
             lastRightClickTime = now;
           }
         },
-        { passive: false }
+        { passive: false },
       );
 
       ToolManager.register("pen", {
@@ -6354,6 +6432,7 @@
           const mapContainer = map.getContainer();
 
           map.doubleClickZoom.disable();
+          map.getContainer().style.touchAction = "none";
 
           // --- Store handlers so we can remove them later ---
           p._mouseDownHandler = function (ev) {
@@ -6388,6 +6467,7 @@
           p.currentLine = null;
 
           const mapContainer = map.getContainer();
+          map.getContainer().style.touchAction = "";
 
           // --- IMPORTANT: remove listeners created by pen tool ---
           if (p._mouseDownHandler) {
@@ -6408,7 +6488,20 @@
         onMouseDown(e) {
           const p = state.pen;
           if (!p.active) return;
-          if (e.originalEvent && e.originalEvent.button !== 0) return; // left only
+
+          const oe = e.originalEvent;
+
+          // Accept: mouse left button OR touch OR stylus/pointer
+          const isTouch = !!oe?.touches;
+          const isLeftMouse = oe?.button === 0 || oe?.buttons === 1;
+          const isPointerPenOrTouch =
+            oe?.pointerType === "pen" || oe?.pointerType === "touch";
+
+          if (!(isTouch || isLeftMouse || isPointerPenOrTouch)) return;
+
+          // Stop Leaflet panning while drawing
+          map.dragging.disable();
+          if (oe?.cancelable) oe.preventDefault();
 
           p.drawing = true;
 
@@ -6425,14 +6518,22 @@
         onMouseMove(e) {
           const p = state.pen;
           if (!p.active || !p.drawing || !p.currentLine) return;
+
+          const oe = e.originalEvent;
+          if (oe?.cancelable) oe.preventDefault();
+
           p.currentLine.addLatLng(e.latlng);
         },
 
-        onMouseUp() {
+        onMouseUp(e) {
           const p = state.pen;
           if (!p.active) return;
+
           p.drawing = false;
           p.currentLine = null;
+
+          // Re-enable panning after finishing
+          map.dragging.enable();
         },
       });
 
@@ -6511,7 +6612,7 @@
           container.addEventListener("click", (ev) => ev.stopPropagation());
           container.addEventListener("dblclick", (ev) => ev.stopPropagation());
           container.addEventListener("contextmenu", (ev) =>
-            ev.stopPropagation()
+            ev.stopPropagation(),
           );
 
           // focus input
@@ -6582,19 +6683,19 @@
         // --- 2) MEASURE: state.measure.all = [{ line, tooltip }]
         state.measure.all = eraseLineTooltipObjectsNearCursor(
           state.measure.all,
-          cursorPoint
+          cursorPoint,
         );
 
         // --- 3) RBL: state.rbl.objects = [{ line, tooltip }]
         state.rbl.objects = eraseLineTooltipObjectsNearCursor(
           state.rbl.objects,
-          cursorPoint
+          cursorPoint,
         );
 
         // --- 4) TEXT: state.text.markers = [marker]
         state.text.markers = eraseMarkersNearCursor(
           state.text.markers,
-          cursorPoint
+          cursorPoint,
         );
       });
 
@@ -6819,15 +6920,24 @@
           opacity: 0.3,
         }).addTo(map);
 
-        let sumLat = 0,
-          sumLng = 0;
-        sectorPolygons[code].forEach(([lat, lng]) => {
-          sumLat += lat;
-          sumLng += lng;
-        });
+        let centerLat, centerLng;
 
-        const centerLat = sumLat / sectorPolygons[code].length;
-        const centerLng = sumLng / sectorPolygons[code].length;
+        // Prefer manual label coordinate if you provided one
+        if (sectorLabelCoords[code]) {
+          const [latDMS, lonDMS] = sectorLabelCoords[code];
+          centerLat = convertDMSToDecimal(latDMS);
+          centerLng = convertDMSToDecimal(lonDMS);
+        } else {
+          // fallback: simple average of polygon vertices (your current behavior)
+          let sumLat = 0,
+            sumLng = 0;
+          sectorPolygons[code].forEach(([lat, lng]) => {
+            sumLat += lat;
+            sumLng += lng;
+          });
+          centerLat = sumLat / sectorPolygons[code].length;
+          centerLng = sumLng / sectorPolygons[code].length;
+        }
 
         const label = L.tooltip({
           permanent: true,
@@ -6913,7 +7023,7 @@
 
         if (!b) return;
 
-        map.flyToBounds(b, { padding: [60, 60], maxZoom: 9.1, duration: 0.5 });
+        map.flyToBounds(b, { padding: [60, 60], maxZoom: 9.1, duration: 0.4 });
       }
 
       //----SID draw helper ------------------
@@ -7048,9 +7158,8 @@
 
         // Expand the route for the waypoints only tooltip
         const expandedRoute = expandRoute(routeSteps, airways);
-        document.getElementById(
-          "expandedRouteTooltip"
-        ).textContent = `${expandedRoute.join(" ")}`;
+        document.getElementById("expandedRouteTooltip").textContent =
+          `${expandedRoute.join(" ")}`;
 
         // Call the original function to display the route with airway names---
         displayExpandedRoute(from, to, routeKey);
@@ -7059,7 +7168,7 @@
       function toggleRouteTips() {
         const button = document.getElementById("toggleRouteTipsBtn");
         const routeTooltips = document.querySelectorAll(
-          ".leaflet-tooltip.route-extra-label"
+          ".leaflet-tooltip.route-extra-label",
         );
         const remarksOverlay = document.getElementById("remarksOverlay");
 
@@ -7073,7 +7182,7 @@
 
           // Check for selected route-pair button and show tooltips
           const selectedRouteButton = document.querySelector(
-            "#routeList button.selected-route"
+            "#routeList button.selected-route",
           );
           if (selectedRouteButton) {
             const routeKey = selectedRouteButton.textContent; // Assuming button text is the routeKey
@@ -7164,15 +7273,13 @@
         }
 
         const routeSteps = routeMap[from][to];
-        document.getElementById(
-          "routeTooltip"
-        ).textContent = `${routeSteps.join(" ")}`;
+        document.getElementById("routeTooltip").textContent =
+          `${routeSteps.join(" ")}`;
 
         const sectors = routeSectors[routeKey];
         const sectorText = sectors ? sectors.join(", ") : "—";
-        document.getElementById(
-          "sectorTooltip"
-        ).textContent = `Sectors: ${sectorText}`;
+        document.getElementById("sectorTooltip").textContent =
+          `Sectors: ${sectorText}`;
 
         const sectorTooltip = document.getElementById("sectorTooltip");
 
@@ -7212,7 +7319,7 @@
 
         const { airwaySegments, dctSegments } = expandRouteWithAirwaySegments(
           routeSteps,
-          airways
+          airways,
         );
 
         const airwayColorMap = {};
@@ -7319,7 +7426,7 @@
                     if (entryIndex !== -1 && exitIndex !== -1) {
                       let segment = airwayPoints.slice(
                         Math.min(entryIndex, exitIndex),
-                        Math.max(entryIndex, exitIndex) + 1
+                        Math.max(entryIndex, exitIndex) + 1,
                       );
                       if (entryIndex > exitIndex) segment.reverse();
 
@@ -7472,7 +7579,7 @@
                   })
                     .setLatLng([midLat, midLng])
                     .setContent(
-                      `<span style=font-weight:bold;">${airway}</span>`
+                      `<span style=font-weight:bold;">${airway}</span>`,
                     )
                     .addTo(map);
                   drawnRouteLayers.push(label);
@@ -7486,7 +7593,7 @@
           } else {
             window.animationFrameId = requestAnimationFrame(
               () =>
-                animateSegmentChain(segments, segmentIndex + 1, doneCallback) // pass callback down
+                animateSegmentChain(segments, segmentIndex + 1, doneCallback), // pass callback down
             );
           }
         }
@@ -7510,7 +7617,7 @@
 
         // Reset route-pair button state and clear any pending animations
         const activeButton = document.querySelector(
-          "#routeList button.selected-route"
+          "#routeList button.selected-route",
         );
         if (activeButton) {
           // Ensure selected state persists by not resetting unless a new button is clicked
@@ -7619,7 +7726,7 @@
       function toggleSectorGroup(group, checked) {
         group.forEach((code) => {
           const checkbox = document.querySelector(
-            `#sectorOptions input[value="${code}"]`
+            `#sectorOptions input[value="${code}"]`,
           );
           if (checkbox) {
             checkbox.checked = checked;
@@ -7656,7 +7763,7 @@
 
         document
           .querySelectorAll(
-            '#sectorOptions input[type="checkbox"]:not(#showSectorColors)'
+            '#sectorOptions input[type="checkbox"]:not(#showSectorColors)',
           )
           .forEach((cb) => {
             cb.addEventListener("change", () => {
@@ -7790,7 +7897,7 @@
               applyCoordLabelColor();
               applyAirwayColor();
               runwayLayers.forEach((layer) =>
-                layer.setStyle({ color: "#00ADD6" })
+                layer.setStyle({ color: "#00ADD6" }),
               );
             } else {
               baseMapLayer.addTo(map);
@@ -7799,7 +7906,7 @@
               applyCoordLabelColor();
               applyAirwayColor();
               runwayLayers.forEach((layer) =>
-                layer.setStyle({ color: "black" })
+                layer.setStyle({ color: "black" }),
               );
             }
 
@@ -7919,4 +8026,3 @@
     </script>
   </body>
 </html>
-
