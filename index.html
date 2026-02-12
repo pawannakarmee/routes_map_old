@@ -6516,40 +6516,32 @@
           };
 
           // ---- TOUCH (iPad) ----
+          // ---- TOUCH (iPad + all touch devices) ----
           p._touchOpts = { passive: false, capture: true };
 
           p._touchStart = (ev) => {
             if (!p.active) return;
 
-            // If suspended (user is panning/zooming), do nothing and let Leaflet handle it
-            if (p.suspended) return;
-
-            // 2+ fingers => this is a map gesture; suspend and let it happen
+            // 2+ fingers => map gesture (pan/zoom)
             if (ev.touches && ev.touches.length > 1) {
-              suspendPen();
+              suspendPen(); // lets Leaflet handle it
               return;
             }
 
-            // 1 finger:
-            // - If Apple Pencil => draw
-            // - If finger => PAN (suspend pen temporarily)
-            const stylus = isStylusTouch(ev);
-            if (!stylus) {
-              suspendPen(); // finger pans without user toggling tools
-              return;
-            }
+            // 1 finger => DRAW (finger or pencil)
+            // If we were suspended from a prior gesture, resume drawing mode now
+            if (p.suspended) resumePen();
 
-            // Stylus draw: stop Leaflet drag for this stroke and prevent default
             ev.preventDefault();
             ev.stopPropagation();
 
+            // stop Leaflet drag while drawing a stroke
             map.dragging.disable();
             startStroke(touchToLatLng(ev));
           };
 
           p._touchMove = (ev) => {
             if (!p.active) return;
-            if (p.suspended) return;
 
             // 2+ fingers => map gesture
             if (ev.touches && ev.touches.length > 1) {
@@ -6557,7 +6549,7 @@
               return;
             }
 
-            // Only draw when a stroke is active
+            if (p.suspended) return; // if map gesture is active, don't draw
             if (!p.drawing || !p.currentLine) return;
 
             ev.preventDefault();
@@ -6569,7 +6561,7 @@
           p._touchEnd = (ev) => {
             if (!p.active) return;
 
-            // If we were drawing, finish stroke and re-enable dragging.
+            // If a stroke was happening, finish it
             if (p.drawing) {
               ev.preventDefault();
               ev.stopPropagation();
@@ -6577,7 +6569,7 @@
               map.dragging.enable();
             }
 
-            // If user was panning (suspended), Leaflet will fire moveend/zoomend and resumePen()
+            // If the user was panning/zooming, Leaflet will fire moveend/zoomend and resumePen()
           };
 
           mapContainer.addEventListener(
