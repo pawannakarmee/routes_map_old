@@ -6431,33 +6431,108 @@
 
           const mapContainer = map.getContainer();
 
+          // Disable gestures that conflict with drawing
           map.doubleClickZoom.disable();
-          map.getContainer().style.touchAction = "none";
+          map.scrollWheelZoom.disable();
+          mapContainer.style.touchAction = "none";
 
-          // --- Store handlers so we can remove them later ---
-          p._mouseDownHandler = function (ev) {
-            if (!state.pen.active) return;
-
-            // Left button: drawing mode -> disable drag
-            if (ev.button === 0) {
-              map.dragging.disable();
-            }
-
-            // Middle button: pan mode -> enable drag
-            if (ev.button === 1) {
-              map.dragging.enable();
-            }
+          // ---- helpers ----
+          const touchLatLng = (ev) => {
+            const t = ev.touches?.[0] || ev.changedTouches?.[0];
+            return t ? map.mouseEventToLatLng(t) : null;
           };
 
-          p._mouseUpHandler = function () {
-            // Only re-enable if pen is still the active tool
-            // (prevents interfering with other tools)
+          const startDrawAt = (latlng) => {
+            if (!latlng) return;
+
+            p.drawing = true;
+            p.currentLine = L.polyline([latlng], {
+              color: "red",
+              weight: 1.5,
+              opacity: 0.9,
+              interactive: false,
+            }).addTo(map);
+
+            p.all.push(p.currentLine);
+          };
+
+          const addPointAt = (latlng) => {
+            if (!latlng || !p.currentLine) return;
+            p.currentLine.addLatLng(latlng);
+          };
+
+          const endDraw = () => {
+            p.drawing = false;
+            p.currentLine = null;
+            if (p.active) map.dragging.enable();
+          };
+
+          // ---- MOUSE (PC) ----
+          p._mouseDownHandler = (ev) => {
+            if (!state.pen.active) return;
+            if (ev.button !== 0) return; // left click only
+            map.dragging.disable();
+          };
+
+          p._mouseUpHandler = () => {
             if (!state.pen.active) return;
             map.dragging.enable();
           };
 
           mapContainer.addEventListener("mousedown", p._mouseDownHandler);
           mapContainer.addEventListener("mouseup", p._mouseUpHandler);
+
+          // ---- TOUCH (iPad) - capture BEFORE Leaflet ----
+          p._touchStart = (ev) => {
+            if (!state.pen.active) return;
+
+            // allow 2-finger pan/zoom gestures
+            if (ev.touches && ev.touches.length > 1) return;
+
+            ev.preventDefault();
+            ev.stopPropagation();
+
+            map.dragging.disable();
+            startDrawAt(touchLatLng(ev));
+          };
+
+          p._touchMove = (ev) => {
+            if (!state.pen.active || !p.drawing) return;
+
+            if (ev.touches && ev.touches.length > 1) return;
+
+            ev.preventDefault();
+            ev.stopPropagation();
+
+            addPointAt(touchLatLng(ev));
+          };
+
+          p._touchEnd = (ev) => {
+            if (!state.pen.active) return;
+
+            ev.preventDefault();
+            ev.stopPropagation();
+
+            endDraw();
+          };
+
+          // IMPORTANT: passive:false + capture:true is what makes iOS obey preventDefault
+          mapContainer.addEventListener("touchstart", p._touchStart, {
+            passive: false,
+            capture: true,
+          });
+          mapContainer.addEventListener("touchmove", p._touchMove, {
+            passive: false,
+            capture: true,
+          });
+          mapContainer.addEventListener("touchend", p._touchEnd, {
+            passive: false,
+            capture: true,
+          });
+          mapContainer.addEventListener("touchcancel", p._touchEnd, {
+            passive: false,
+            capture: true,
+          });
         },
 
         onDeactivate() {
@@ -6467,9 +6542,11 @@
           p.currentLine = null;
 
           const mapContainer = map.getContainer();
-          map.getContainer().style.touchAction = "";
 
-          // --- IMPORTANT: remove listeners created by pen tool ---
+          // restore container touch behavior
+          mapContainer.style.touchAction = "";
+
+          // remove mouse listeners
           if (p._mouseDownHandler) {
             mapContainer.removeEventListener("mousedown", p._mouseDownHandler);
             p._mouseDownHandler = null;
@@ -6479,32 +6556,44 @@
             p._mouseUpHandler = null;
           }
 
-          // Restore map interactions
+          // remove touch listeners (must match capture:true)
+          if (p._touchStart) {
+            mapContainer.removeEventListener("touchstart", p._touchStart, {
+              capture: true,
+            });
+            mapContainer.removeEventListener("touchmove", p._touchMove, {
+              capture: true,
+            });
+            mapContainer.removeEventListener("touchend", p._touchEnd, {
+              capture: true,
+            });
+            mapContainer.removeEventListener("touchcancel", p._touchEnd, {
+              capture: true,
+            });
+            p._touchStart = p._touchMove = p._touchEnd = null;
+          }
+
+          // restore map interactions
           map.dragging.enable();
-          map.doubleClickZoom.disable();
+          map.doubleClickZoom.enable();
           map.scrollWheelZoom.enable();
         },
 
+        // Still used for PC drawing path (ToolManager dispatch)
         onMouseDown(e) {
           const p = state.pen;
           if (!p.active) return;
 
           const oe = e.originalEvent;
 
-          // Accept: mouse left button OR touch OR stylus/pointer
-          const isTouch = !!oe?.touches;
+          // Mouse only here (touch is handled via container touch listeners)
           const isLeftMouse = oe?.button === 0 || oe?.buttons === 1;
-          const isPointerPenOrTouch =
-            oe?.pointerType === "pen" || oe?.pointerType === "touch";
+          if (!isLeftMouse) return;
 
-          if (!(isTouch || isLeftMouse || isPointerPenOrTouch)) return;
-
-          // Stop Leaflet panning while drawing
           map.dragging.disable();
           if (oe?.cancelable) oe.preventDefault();
 
           p.drawing = true;
-
           p.currentLine = L.polyline([e.latlng], {
             color: "red",
             weight: 1.5,
@@ -6532,7 +6621,6 @@
           p.drawing = false;
           p.currentLine = null;
 
-          // Re-enable panning after finishing
           map.dragging.enable();
         },
       });
