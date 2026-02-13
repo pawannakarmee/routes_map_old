@@ -7011,12 +7011,26 @@
         onActivate() {
           state.eraser.active = true;
           state.eraser.erasing = false;
+        
+          const mapContainer = map.getContainer();
+        
+          // 🔹 Disable native touch panning
+          mapContainer.style.touchAction = "none";
+          map.dragging.disable();
+          if (map.touchZoom) map.touchZoom.disable();
         },
 
         onDeactivate() {
           state.eraser.active = false;
           state.eraser.erasing = false;
+        
+          const mapContainer = map.getContainer();
+        
+          // 🔹 Restore normal map behavior
+          mapContainer.style.touchAction = "";
           map.dragging.enable();
+          if (map.touchZoom) map.touchZoom.enable();
+        
           restoreCursorAfterEraser();
         },
 
@@ -8425,3 +8439,4 @@
     </script>
   </body>
 </html>
+
