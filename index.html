@@ -839,6 +839,7 @@
         <button id="clearPenBtn" class="tool-btn">Clear Pen</button>
         <button id="textToolBtn" class="tool-btn">Text Box</button>
         <button id="clearTextBtn" class="tool-btn">Clear Boxes</button>
+        <button id="btnEraser" class="tool-btn">Eraser</button>
       </div>
 
       <div id="sectorPanel" class="map-btn-panel">
@@ -1504,12 +1505,12 @@
         ["253800.0000N", "0552000.0000E"],
       ];
       /*
-      const kboxCoords = [
-      ["251727.2300N", "0531010.5921E"],
-      ["251037.0000N", "0523706.9999E"],
-      ["252629.4279N", "0524901.1237E"],
-      ];
-      */
+            const kboxCoords = [
+            ["251727.2300N", "0531010.5921E"],
+            ["251037.0000N", "0523706.9999E"],
+            ["252629.4279N", "0524901.1237E"],
+            ];
+            */
 
       const highSectors = ["S", "B", "L", "N", "M", "C"];
       const lowSectors = ["G", "A", "W", "D", "H", "E", "Y", "R"];
@@ -1676,6 +1677,80 @@
           "IMTUP",
           "KANIP",
         ],
+      };
+
+      const extraColorGroups = {
+        OUT: [
+          "ORMID",
+          "ALPOB",
+          "TUMAK",
+          "GABKO",
+          "GOMTA",
+          "TONVO",
+          "TARDI",
+          "LABRI",
+          "RETAS",
+          "MEMTU",
+          "KUMUN",
+          "TOVOX",
+        ],
+
+        IN: [
+          "ORSAR",
+          "SIR",
+          "PATAT",
+          "MENSA",
+          "PASOV",
+          "SOLUD",
+          "TAPRA",
+          "MUSAP",
+          "ITRAX",
+          "SODEX",
+          "BUNDU",
+          "KUPRO",
+          "LUDID",
+          "ASTOG",
+          "OVONA",
+          "NALPO",
+          "OBNET",
+        ],
+
+        BI: ["LALDO", "RIBOT", "TANSU", "PEKEM", "MUXIT", "RIBOT", "TOSNA"],
+
+        ST: [
+          "UKILI",
+          "VUTEB",
+          "PUVAL",
+          "IMPED",
+          "EMERU",
+          "ROVOS",
+          "NOBTO",
+          "ATUDO",
+          "LORID",
+          "GONVI",
+          "DATOB",
+          "GIDOB",
+          "ELOVU",
+          "GERUL",
+          "UMAMI",
+          "NOLSU",
+          "GIDIS",
+          "KANIP",
+          "KUSEN",
+        ],
+      };
+
+      Object.entries(extraColorGroups).forEach(([dir, names]) => {
+        names.forEach((name) => {
+          extraColorGroups[name] = dir;
+        });
+      });
+
+      const dirColors = {
+        IN: "#ffb9dcc4",
+        OUT: "#aaf1facc",
+        BI: "#e0d0a0",
+        ST: "#ccfdbdc7",
       };
 
       const extraPoints = {
@@ -4132,21 +4207,21 @@
       const sectFreq = [
         { frqName: "OMAA-C / 124.4", pin: ["240243.58N", "0550505.46E"] },
         /*{ frqName: "G / 120.525", pin: ["244350.07N", "0531028.57E"] },
-      { frqName: "S / 128.25", pin: ["244801.92N", "0523545.62E"] },
-      {
-      frqName: "A / 129.5",
-      freq: "B / 119.325",
-      condition: "L / 125.925",
-      pin: ["240006.44N", "0544055.49E"],
-      },
-      {
-      frqName: "N / 132.15",
-      pin: ["260804.75N", "0532333.16E"],
-      },
-      {
-      frqName: "W / 119.3",
-      pin: ["254824.40N", "0541704.78E"],
-      },*/
+            { frqName: "S / 128.25", pin: ["244801.92N", "0523545.62E"] },
+            {
+            frqName: "A / 129.5",
+            freq: "B / 119.325",
+            condition: "L / 125.925",
+            pin: ["240006.44N", "0544055.49E"],
+            },
+            {
+            frqName: "N / 132.15",
+            pin: ["260804.75N", "0532333.16E"],
+            },
+            {
+            frqName: "W / 119.3",
+            pin: ["254824.40N", "0541704.78E"],
+            },*/
         {
           frqName: "OMDB W / 124.9",
           freq: "",
@@ -4310,11 +4385,11 @@
 
         //sample of rectangle shape
         /*{shapeName: "Rectangle A3", shapeType: "rectangle",
-      corner1: ["252400N","0562000E"],
-      corner2: ["252500N","0562100E"],
-      limit: "Surface – 8,000ft",
-      type: "Danger"
-      }*/
+            corner1: ["252400N","0562000E"],
+            corner2: ["252500N","0562100E"],
+            limit: "Surface – 8,000ft",
+            type: "Danger"
+            }*/
       ];
 
       // --- Restricted Category Library -----------------------
@@ -4404,13 +4479,13 @@
       // -Danger Category Library ---
       const dangerAreas = [
         /*{
-      shapeName: "Circle C1",
-      shapeType: "circle",
-      coords: ["251200N","0554000E"],
-      radiusNm: 2,
-      limit: "FL60 – FL120",
-      type: "Temporary"
-      },*/
+            shapeName: "Circle C1",
+            shapeType: "circle",
+            coords: ["251200N","0554000E"],
+            radiusNm: 2,
+            limit: "FL60 – FL120",
+            type: "Temporary"
+            },*/
         {
           shapeName: "D22 FL300_GND",
           shapeType: "polygon",
@@ -5052,6 +5127,8 @@
             return "crosshair";
           case "text":
             return "text";
+          case "eraser":
+            return "crosshair";
           default:
             return "";
         }
@@ -5059,21 +5136,21 @@
 
       // --- UI ONLY --- (DOM TOUCHING) //here
       /* //if checkbox is selected ---map layers -- text color green
-            function updateMapLayerButtonState() {
-              const btn = document.getElementById("toggleMapLayerBtn");
-              if (!btn) return;
+                  function updateMapLayerButtonState() {
+                    const btn = document.getElementById("toggleMapLayerBtn");
+                    if (!btn) return;
 
-              const anyChecked = [
-                "mlBorders",
-                "mlRunways",
-                "mlFixes",
-                "mlAwyLabels",
-                "mlAirspace",
-              ].some((id) => document.getElementById(id)?.checked);
+                    const anyChecked = [
+                      "mlBorders",
+                      "mlRunways",
+                      "mlFixes",
+                      "mlAwyLabels",
+                      "mlAirspace",
+                    ].some((id) => document.getElementById(id)?.checked);
 
-              btn.style.color = anyChecked ? "#b4f59d" : "";
-            }
-      */
+                    btn.style.color = anyChecked ? "#b4f59d" : "";
+                  }
+            */
       function syncToolUI() {
         const active = state.ui.activeTool;
 
@@ -5082,6 +5159,7 @@
         setButtonActive(penBtn, active === "pen");
         setButtonActive(textBtn, active === "text");
 
+        setButtonActive(eraserBtn, active === "eraser");
         setMapCursor(state.ui.cursor);
       }
 
@@ -5591,7 +5669,7 @@
         })
           .bindTooltip(
             `<b>${pointName}</b> - (${turn})<br>Inbound: ${inboundHeadingDeg}°<br>Outbound: ${outboundHeadingDeg}°<br>
-      Limit: ${limit || "N/A"}`,
+            Limit: ${limit || "N/A"}`,
             {
               permanent: true,
               direction: "top",
@@ -5615,10 +5693,10 @@
           iconSize: [16, 16],
           iconAnchor: [8, 8],
           html: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-      width="16" height="16"
-      style="transform: rotate(${arrowRotation}deg); fill: yellow;">
-      <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/>
-      </svg>`,
+            width="16" height="16"
+            style="transform: rotate(${arrowRotation}deg); fill: yellow;">
+            <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/>
+            </svg>`,
         });
 
         // --- Arrow on inbound leg ---
@@ -5634,10 +5712,10 @@
           iconSize: [16, 16],
           iconAnchor: [8, 8],
           html: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-      width="16" height="16"
-      style="transform: rotate(${inboundRotation}deg); fill: yellow;">
-      <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/>
-      </svg>`,
+            width="16" height="16"
+            style="transform: rotate(${inboundRotation}deg); fill: yellow;">
+            <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/>
+            </svg>`,
         });
 
         const inboundArrowMarker = L.marker(inboundMidPoint, {
@@ -5717,9 +5795,9 @@
           else map.removeLayer(layer);
         });
         /*
-              const btn = document.getElementById("toggleRunwaysBtn");
-              if (btn) btn.style.color = runwaysVisible ? "#b4f59d" : "#c2c2c0";
-      */
+                    const btn = document.getElementById("toggleRunwaysBtn");
+                    if (btn) btn.style.color = runwaysVisible ? "#b4f59d" : "#c2c2c0";
+            */
       }
 
       function toggleRunwayLines() {
@@ -5902,13 +5980,13 @@
             interactive: true,
             className: "airway-name-tooltip",
           }).setLatLng(latlng).setContent(`
-      <div class="airway-name-inner"
-      style="transform: rotate(${rotate}deg);">
-      ${arrow === "left" ? '<span class="airway-arrow left"></span>' : ""}
-      ${name}
-      ${arrow === "right" ? '<span class="airway-arrow right"></span>' : ""}
-      </div>
-      `);
+            <div class="airway-name-inner"
+            style="transform: rotate(${rotate}deg);">
+            ${arrow === "left" ? '<span class="airway-arrow left"></span>' : ""}
+            ${name}
+            ${arrow === "right" ? '<span class="airway-arrow right"></span>' : ""}
+            </div>
+            `);
           tooltip.on("click", () => {
             highlightSingleAirway(name);
           });
@@ -5918,21 +5996,21 @@
       });
 
       /*
-            const airwayBtn = document.getElementById("airwayLabelBtn");
+                  const airwayBtn = document.getElementById("airwayLabelBtn");
 
-           airwayBtn.addEventListener("click", () => {
-              airwayLabelsVisible = !airwayLabelsVisible;
+                 airwayBtn.addEventListener("click", () => {
+                    airwayLabelsVisible = !airwayLabelsVisible;
 
-              if (airwayLabelsVisible) {
-                airwayLabelLayer.addTo(map);
-                airwayBtn.style.color = "#B4F59D";
-              } else {
-                map.removeLayer(airwayLabelLayer);
-                airwayBtn.style.borderColor = "";
-                airwayBtn.style.color = "";
-              }
-            });
-      */
+                    if (airwayLabelsVisible) {
+                      airwayLabelLayer.addTo(map);
+                      airwayBtn.style.color = "#B4F59D";
+                    } else {
+                      map.removeLayer(airwayLabelLayer);
+                      airwayBtn.style.borderColor = "";
+                      airwayBtn.style.color = "";
+                    }
+                  });
+            */
       function setAwyLabelsVisible(visible) {
         airwayLabelsVisible = !!visible;
 
@@ -5949,10 +6027,10 @@
         }
       }
       /*
-            function toggleAwyLabels() {
-              setAwyLabelsVisible(!airwayLabelsVisible);
-            }
-      */
+                  function toggleAwyLabels() {
+                    setAwyLabelsVisible(!airwayLabelsVisible);
+                  }
+            */
       //display coordinates of corss hair on the center of the map-----------
 
       const centerCoords = document.getElementById("centerCoords");
@@ -6013,6 +6091,7 @@
       syncRoutePanelUI();
 
       const rblBtn = document.getElementById("rblToolBtn");
+      const eraserBtn = document.getElementById("btnEraser");
 
       // Toggle RBL tool via ToolManager (single source of truth)
       rblBtn.addEventListener("click", () => {
@@ -6786,9 +6865,13 @@
         },
       });
 
-      // ------------------------ UNIVERSAL ERASER (STATE-BASED) ------------------------
-
-      state.eraser ??= { active: false, lastEraseAt: 0 };
+      // ------------------------ ERASER TOOL (FULLY STATE-BASED) ------------------------
+      // Converts the old “universal right-click eraser” into a proper ToolManager tool:
+      // - Activate/deactivate via an Eraser button (like pen/text/rbl/measure)
+      // - Erase with LEFT mouse drag (and still supports RIGHT mouse drag)
+      // - Works on touch devices (single-finger erase), same dispatch path as pen
+      // Ensure state shape exists
+      state.eraser ??= { active: false, erasing: false, lastEraseAt: 0 };
 
       const ERASE_INTERVAL_MS = 35;
       const ERASE_RADIUS_PX = 10;
@@ -6803,42 +6886,14 @@
         setMapCursor(cursorForTool(activeTool));
       }
 
-      // Prevent browser context menu while erasing
-      map.getContainer().addEventListener("contextmenu", (e) => {
-        if (state.eraser.active) e.preventDefault();
-      });
-
-      // Right mouse DOWN = start eraser
-      map.getContainer().addEventListener("mousedown", (e) => {
-        if (e.button !== 2) return; // right only
-        if (isTypingInTextBox()) return;
-
-        state.eraser.active = true;
-
-        e.preventDefault();
-        e.stopPropagation();
-      });
-
-      // Right mouse UP = stop eraser
-      window.addEventListener("mouseup", (e) => {
-        if (e.button !== 2) return;
-
-        state.eraser.active = false;
-        restoreCursorAfterEraser();
-
-        e.preventDefault();
-      });
-
-      // Erase while moving
-      map.on("mousemove", (e) => {
-        if (!state.eraser.active) return;
+      function eraseAtLatLng(latlng) {
         if (isTypingInTextBox()) return;
 
         const now = performance.now();
         if (now - state.eraser.lastEraseAt < ERASE_INTERVAL_MS) return;
         state.eraser.lastEraseAt = now;
 
-        const cursorPoint = map.latLngToContainerPoint(e.latlng);
+        const cursorPoint = map.latLngToContainerPoint(latlng);
 
         // --- 1) PEN: state.pen.all = [polyline]
         state.pen.all = erasePolylinesNearCursor(state.pen.all, cursorPoint);
@@ -6860,6 +6915,177 @@
           state.text.markers,
           cursorPoint,
         );
+      }
+
+      // ======================= GLOBAL RIGHT-HOLD ERASER (MOUSE) =======================
+      // Works regardless of the currently active tool:
+      // - Hold RIGHT mouse button and drag to erase
+      // - Does NOT require eraser tool or pen tool to be active
+      // - Does NOT affect touch devices (mouse only)
+      //
+      // This is implemented using raw DOM mouse events (like your original universal eraser),
+      // but we only prevent the browser context menu while the right-hold erase is active,
+      // to avoid "double click to activate other tools" issues.
+
+      state.eraser.rightHoldErasing ??= false;
+
+      const mapElRightHold = map.getContainer();
+
+      mapElRightHold.addEventListener(
+        "mousedown",
+        (ev) => {
+          if (ev.button !== 2) return; // right mouse only
+          if (isTypingInTextBox()) return;
+
+          state.eraser.rightHoldErasing = true;
+          state.eraser.erasing = true; // reuse for throttling + contextmenu suppression
+          map.dragging.disable();
+
+          // Prevent context menu and stop other handlers while erasing
+          ev.preventDefault();
+          ev.stopPropagation();
+
+          const pt = map.mouseEventToContainerPoint(ev);
+          const latlng = map.containerPointToLatLng(pt);
+          eraseAtLatLng(latlng);
+        },
+        { passive: false },
+      );
+
+      window.addEventListener(
+        "mousemove",
+        (ev) => {
+          if (!state.eraser.rightHoldErasing) return;
+          if (isTypingInTextBox()) return;
+
+          ev.preventDefault?.();
+
+          const pt = map.mouseEventToContainerPoint(ev);
+          const latlng = map.containerPointToLatLng(pt);
+          eraseAtLatLng(latlng);
+        },
+        { passive: false },
+      );
+
+      window.addEventListener(
+        "mouseup",
+        (ev) => {
+          if (ev.button !== 2) return;
+          if (!state.eraser.rightHoldErasing) return;
+
+          state.eraser.rightHoldErasing = false;
+          state.eraser.erasing = false;
+
+          map.dragging.enable();
+          restoreCursorAfterEraser();
+
+          ev.preventDefault?.();
+        },
+        { passive: false },
+      );
+
+      // Block the browser context menu ONLY while right-hold erasing (prevents interference with tool buttons)
+      mapElRightHold.addEventListener(
+        "contextmenu",
+        (e) => {
+          if (state.eraser.rightHoldErasing) e.preventDefault();
+        },
+        { passive: false },
+      );
+
+      // Prevent browser context menu only while actively erasing (avoids “double-click to activate tool” bugs)
+      map.getContainer().addEventListener("contextmenu", (e) => {
+        if (state.eraser.active && state.eraser.erasing) e.preventDefault();
+      });
+
+      // Button toggle wiring (same logic as other tools)
+      if (eraserBtn) {
+        eraserBtn.addEventListener("click", () => {
+          uiSetActiveTool(
+            ToolManager.getActive() === "eraser" ? null : "eraser",
+          );
+        });
+      }
+
+      ToolManager.register("eraser", {
+        onActivate() {
+          state.eraser.active = true;
+          state.eraser.erasing = false;
+        },
+
+        onDeactivate() {
+          state.eraser.active = false;
+          state.eraser.erasing = false;
+          map.dragging.enable();
+          restoreCursorAfterEraser();
+        },
+
+        onMouseDown(e) {
+          if (!state.eraser.active) return;
+          if (isTypingInTextBox()) return;
+
+          const oe = e.originalEvent;
+
+          // Touch: single-finger erase; allow multi-touch gestures (pinch/zoom/pan)
+          const isTouch = !!oe && (oe.type?.startsWith("touch") || oe.touches);
+          if (isTouch) {
+            const touches = oe.touches || [];
+            if (touches.length > 1) return; // allow pinch / pan
+          }
+
+          // Mouse: allow left drag, and keep right-drag support
+          const isLeftMouse = oe?.button === 0 || oe?.buttons === 1;
+          const isRightMouse = oe?.button === 2;
+          if (!isTouch && !isLeftMouse && !isRightMouse) return;
+
+          state.eraser.erasing = true;
+
+          // Stop map panning while erasing
+          map.dragging.disable();
+
+          if (oe?.cancelable) oe.preventDefault();
+          // Prevent starting other tools / click handlers while erasing
+          oe?.stopPropagation?.();
+
+          // Erase immediately at start point
+          eraseAtLatLng(e.latlng);
+        },
+
+        onRightClick(e) {
+          // Leaflet routes right-click through the contextmenu event.
+          if (!state.eraser.active) return;
+          if (isTypingInTextBox()) return;
+
+          const oe = e.originalEvent;
+          state.eraser.erasing = true;
+          map.dragging.disable();
+
+          // Block the browser context menu + stop other handlers
+          if (oe?.cancelable) oe.preventDefault();
+          oe?.stopPropagation?.();
+
+          // Erase immediately at the start point
+          eraseAtLatLng(e.latlng);
+        },
+
+        onMouseMove(e) {
+          if (!state.eraser.active || !state.eraser.erasing) return;
+
+          const oe = e.originalEvent;
+          if (oe?.cancelable) oe.preventDefault();
+
+          eraseAtLatLng(e.latlng);
+        },
+
+        onMouseUp(e) {
+          if (!state.eraser.active) return;
+
+          state.eraser.erasing = false;
+          map.dragging.enable();
+
+          const oe = e?.originalEvent;
+          if (oe?.button === 2) restoreCursorAfterEraser();
+        },
       });
 
       // -------------------- helpers --------------------
@@ -6924,10 +7150,10 @@
         sectorData.forEach((row) => {
           const tr = document.createElement("tr");
           tr.innerHTML = `
-      <td>${row.sector}</td>
-      <td>${row.limit}</td>
-      <td>${row.freq}</td>
-      `;
+            <td>${row.sector}</td>
+            <td>${row.limit}</td>
+            <td>${row.freq}</td>
+            `;
           tbody.appendChild(tr);
         });
       }
@@ -7052,6 +7278,16 @@
             .setLatLng([lat, lon])
             .setContent(name)
             .addTo(map);
+
+          const dir = extraColorGroups[name];
+          const color = dir ? dirColors[dir] : null;
+
+          if (color) {
+            requestAnimationFrame(() => {
+              const el = label.getElement();
+              if (el) el.style.color = color;
+            });
+          }
 
           extraLabelMarkers.push(label);
         }
@@ -7367,11 +7603,11 @@
         if (!routeSteps) return;
 
         /*        document
-      .querySelectorAll(".leaflet-tooltip.route-extra-label")
-      .forEach((tooltip) => {
-      map.removeLayer(tooltip);
-      });
-      */
+            .querySelectorAll(".leaflet-tooltip.route-extra-label")
+            .forEach((tooltip) => {
+            map.removeLayer(tooltip);
+            });
+            */
         if (CFL_XFL[routeKey]) {
           // Start point tooltip: CFL
           const startPointName = routeSteps[0];
@@ -8042,11 +8278,11 @@
             // optional arrow flip (nice UX)
             const btn = document.getElementById("toggleSidBtn");
             /*if (btn) {
-              btn.textContent = panel.classList.contains("active")
-                ? "SIDs ▼"
-                : "SIDs ▸";
-            }
-                */
+                    btn.textContent = panel.classList.contains("active")
+                      ? "SIDs ▼"
+                      : "SIDs ▸";
+                  }
+                      */
           });
 
         //--------toggle map---------------------
@@ -8086,18 +8322,18 @@
 
         //---------togglewaypoint--------
         /*
-              document
-                .getElementById("toggleWaypointsBtn")
-                ?.addEventListener("click", function () {
-                  coordsVisible = !coordsVisible;
-                  extraLabelMarkers.forEach((label) => {
-                    const el = label.getElement();
-                    if (el) el.style.opacity = coordsVisible ? "1" : "0";
-                  });
-                  this.textContent = "Fixes";
-                  this.style.color = coordsVisible ? "" : "#c2c2c0";
-                });
-      */
+                    document
+                      .getElementById("toggleWaypointsBtn")
+                      ?.addEventListener("click", function () {
+                        coordsVisible = !coordsVisible;
+                        extraLabelMarkers.forEach((label) => {
+                          const el = label.getElement();
+                          if (el) el.style.opacity = coordsVisible ? "1" : "0";
+                        });
+                        this.textContent = "Fixes";
+                        this.style.color = coordsVisible ? "" : "#c2c2c0";
+                      });
+            */
         function setFixesVisible(visible) {
           coordsVisible = !!visible;
 
@@ -8107,17 +8343,17 @@
           });
 
           /*const btn = document.getElementById("toggleWaypointsBtn");
-                if (btn) btn.style.color = coordsVisible ? "" : "#c2c2c0";
-      */
+                      if (btn) btn.style.color = coordsVisible ? "" : "#c2c2c0";
+            */
         }
         document
           .getElementById("toggleRouteTipsBtn")
           ?.addEventListener("click", toggleRouteTips);
         /*
-              document
-                .getElementById("toggleRunwaysBtn")
-                ?.addEventListener("click", toggleRunwayLines);
-      */
+                    document
+                      .getElementById("toggleRunwaysBtn")
+                      ?.addEventListener("click", toggleRunwayLines);
+            */
         document
           .getElementById("toggleFreqBtn")
           ?.addEventListener("click", function () {
@@ -8189,4 +8425,3 @@
     </script>
   </body>
 </html>
-
