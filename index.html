@@ -7011,26 +7011,131 @@
         onActivate() {
           state.eraser.active = true;
           state.eraser.erasing = false;
-        
+
           const mapContainer = map.getContainer();
-        
-          // 🔹 Disable native touch panning
-          mapContainer.style.touchAction = "none";
-          map.dragging.disable();
-          if (map.touchZoom) map.touchZoom.disable();
+          const e = state.eraser;
+
+          e.suspended = false;
+
+          // Same touch options as pen
+          e._touchOpts = { passive: false, capture: true };
+
+          e._touchStart = (ev) => {
+            if (!e.active) return;
+
+            // 2+ fingers → allow map gesture
+            if (ev.touches && ev.touches.length > 1) {
+              suspendEraser();
+              return;
+            }
+
+            if (e.suspended) resumeEraser();
+
+            ev.preventDefault();
+            ev.stopPropagation();
+
+            map.dragging.disable();
+            e.erasing = true;
+
+            const latlng = map.mouseEventToLatLng(ev.touches[0]);
+            eraseAtLatLng(latlng);
+          };
+
+          e._touchMove = (ev) => {
+            if (!e.active) return;
+
+            if (ev.touches && ev.touches.length > 1) {
+              suspendEraser();
+              return;
+            }
+
+            if (e.suspended || !e.erasing) return;
+
+            ev.preventDefault();
+            ev.stopPropagation();
+
+            const latlng = map.mouseEventToLatLng(ev.touches[0]);
+            eraseAtLatLng(latlng);
+          };
+
+          e._touchEnd = (ev) => {
+            if (!e.active) return;
+
+            e.erasing = false;
+            map.dragging.enable();
+          };
+
+          const suspendEraser = () => {
+            if (!e.active || e.suspended) return;
+            e.suspended = true;
+            e.erasing = false;
+
+            map.dragging.enable();
+            if (map.touchZoom) map.touchZoom.enable();
+          };
+
+          const resumeEraser = () => {
+            if (!e.active || !e.suspended) return;
+            e.suspended = false;
+          };
+
+          mapContainer.addEventListener(
+            "touchstart",
+            e._touchStart,
+            e._touchOpts,
+          );
+          mapContainer.addEventListener(
+            "touchmove",
+            e._touchMove,
+            e._touchOpts,
+          );
+          mapContainer.addEventListener("touchend", e._touchEnd, e._touchOpts);
+          mapContainer.addEventListener(
+            "touchcancel",
+            e._touchEnd,
+            e._touchOpts,
+          );
         },
 
         onDeactivate() {
-          state.eraser.active = false;
-          state.eraser.erasing = false;
-        
+          const e = state.eraser;
+          e.active = false;
+          e.erasing = false;
+
           const mapContainer = map.getContainer();
-        
-          // 🔹 Restore normal map behavior
-          mapContainer.style.touchAction = "";
+
           map.dragging.enable();
           if (map.touchZoom) map.touchZoom.enable();
-        
+
+          if (e._touchStart)
+            mapContainer.removeEventListener(
+              "touchstart",
+              e._touchStart,
+              e._touchOpts,
+            );
+          if (e._touchMove)
+            mapContainer.removeEventListener(
+              "touchmove",
+              e._touchMove,
+              e._touchOpts,
+            );
+          if (e._touchEnd) {
+            mapContainer.removeEventListener(
+              "touchend",
+              e._touchEnd,
+              e._touchOpts,
+            );
+            mapContainer.removeEventListener(
+              "touchcancel",
+              e._touchEnd,
+              e._touchOpts,
+            );
+          }
+
+          e._touchStart = null;
+          e._touchMove = null;
+          e._touchEnd = null;
+
           restoreCursorAfterEraser();
         },
 
@@ -8439,4 +8544,3 @@
     </script>
   </body>
 </html>
-
